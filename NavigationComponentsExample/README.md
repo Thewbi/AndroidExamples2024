@@ -259,7 +259,7 @@ The viewmodel will update it's MutableLiveData with said result which in turn tr
 is registered at the mutable. This is how the result information makes it's way back into the UI without the UI knowing details of how
 this data was retrieved.
 
-# Patientlist Fragment
+### Perform Navigation to Patientlist Fragment after successfull login
 
 Navigating to another fragment after successfull login is done using a navigation controller.
 First define a new fragment to navigate to.
@@ -292,3 +292,30 @@ Now inside onViewCreate() of the fragment, the nav controller is assigned.
 ```
 navController = Navigation.findNavController(view)
 ```
+
+Wenn the user has logged in, the LoginFragment.kt method updateUiWithUser() is called.
+
+```
+private fun updateUiWithUser(model: LoggedInUserView) {
+	//val welcome = getString(R.string.welcome) + model.displayName
+	// TODO : initiate successful logged in experience
+	//val appContext = context?.applicationContext ?: return
+	//Toast.makeText(appContext, welcome, Toast.LENGTH_LONG).show()
+
+	// navigate from this view to the next fragment using the
+	// action_loginFragment2_to_patientListFragment action defined in the nav_graph
+	// for this current fragment
+	navController.navigate(R.id.action_loginFragment2_to_patientListFragment);
+}
+```
+
+This method has to call navController.navigate(R.id.action_loginFragment2_to_patientListFragment);
+to trigger the action which is defined via the nav_graph. The Action performs a transition from the
+login fragment to the patient list fragment.
+
+### Navigating back to the login screen
+
+When the user uses the back button of the Android UI, the application goes back to the login fragment
+for a split second then navigates back to the patient list immediately!
+
+TODO: What is going on?
