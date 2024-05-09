@@ -148,6 +148,14 @@ The UI elements are created in res\layout\fragment_login.xml
 
 The user types in a username and a password into the input fields, then taps the login button.
 
+MVVM stands for [Model] [View] [ViewModel].
+The ViewModel sits between the model and the view and takes on the role of a mediator.
+The View does not know what is performed with it's user input and it does not know how the data is created that is has to display.
+The Model on the other hand has no idea how the data is displayed in the UI. Instead it just returns DataObjects.
+
+The ViewModel in between receives the user input and knows how to turn this user input into data using application logic.
+The application logic is implemented inside the view model.
+
 ### Interaction between the View and the View Model
 
 Lets look at how the view is interfacing with the view model and how the login button works.
@@ -229,7 +237,7 @@ If the login fails, the application should stay on the login fragment.
 
 ### Interaction between the ViewModel and the Model
 
-The model consists of the repository which in turn tolks to the DataSource.
+The model consists of the repository which in turn talks to the DataSource.
 The repository LoginRepository.kt uses the data source (LoginDataSource.kt) to check if the login can be completed using the
 username and the password.
 
@@ -251,5 +259,36 @@ The viewmodel will update it's MutableLiveData with said result which in turn tr
 is registered at the mutable. This is how the result information makes it's way back into the UI without the UI knowing details of how
 this data was retrieved.
 
+# Patientlist Fragment
 
+Navigating to another fragment after successfull login is done using a navigation controller.
+First define a new fragment to navigate to.
 
+ObjectKind: PatientList
+Fragment class name: PatientListFragment
+ColumnCount: 1 column
+Object content layout file: patient_list_fragment_item
+List layout file name: patient_list_fragment_item_list
+Adapter class name: PatientListRecyclerViewAdapter
+Source Language: Kotlin
+Target Source Set: main
+
+Open the nav_graph editor on your nav_graph XML file and insert the new fragment.
+Draw a transition between the login fragment and the new fragment.
+
+To trigger the navigation, the login fragment is updated.
+First, add the navigation controller member variable into the login fragment.
+
+```
+private lateinit var navController: NavController
+```
+
+the lateinit keyword allows the variable to be left with a null value.
+This means, the code does not instantiate the nav controller.
+Instead the navcontroller will be retrieved from the system inside onViewCreated()
+
+Now inside onViewCreate() of the fragment, the nav controller is assigned.
+
+```
+navController = Navigation.findNavController(view)
+```
