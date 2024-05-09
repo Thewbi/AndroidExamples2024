@@ -24,7 +24,9 @@ import com.example.navigationcomponentsexample.R
 class LoginFragment : Fragment() {
 
     private lateinit var loginViewModel: LoginViewModel
-    //private lateinit var navController: NavController
+
+    // this variable is assigned in onViewCreate() hence the lateinit since it remains null initially
+    private lateinit var navController: NavController
 
 
 
@@ -56,10 +58,14 @@ class LoginFragment : Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+
         super.onViewCreated(view, savedInstanceState)
+
         loginViewModel = ViewModelProvider(this, LoginViewModelFactory())
             .get(LoginViewModel::class.java)
-        //navController = Navigation.findNavController(view)
+
+        // retrieve the navigation controller
+        navController = Navigation.findNavController(view)
 
         val usernameEditText = binding.username
         val passwordEditText = binding.password
@@ -88,6 +94,7 @@ class LoginFragment : Fragment() {
                     showLoginFailed(it)
                 }
                 loginResult.success?.let {
+                    // TODO perform navigation to the next fragment inside updateUiWithUser(it)
                     updateUiWithUser(it)
                 }
             })
@@ -130,10 +137,15 @@ class LoginFragment : Fragment() {
     }
 
     private fun updateUiWithUser(model: LoggedInUserView) {
-        val welcome = getString(R.string.welcome) + model.displayName
+        //val welcome = getString(R.string.welcome) + model.displayName
         // TODO : initiate successful logged in experience
-        val appContext = context?.applicationContext ?: return
-        Toast.makeText(appContext, welcome, Toast.LENGTH_LONG).show()
+        //val appContext = context?.applicationContext ?: return
+        //Toast.makeText(appContext, welcome, Toast.LENGTH_LONG).show()
+
+        // navigate from this view to the next fragment using the
+        // action_loginFragment2_to_patientListFragment action defined in the nav_graph
+        // for this current fragment
+        navController.navigate(R.id.action_loginFragment2_to_patientListFragment);
     }
 
     private fun showLoginFailed(@StringRes errorString: Int) {

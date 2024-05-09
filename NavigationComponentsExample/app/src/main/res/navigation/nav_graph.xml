@@ -8,5 +8,14 @@
         android:id="@+id/loginFragment2"
         android:name="com.example.navigationcomponentsexample.ui.login.LoginFragment"
         android:label="fragment_login"
-        tools:layout="@layout/fragment_login" />
+        tools:layout="@layout/fragment_login" >
+        <action
+            android:id="@+id/action_loginFragment2_to_patientListFragment"
+            app:destination="@id/patientListFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/patientListFragment"
+        android:name="com.example.navigationcomponentsexample.PatientListFragment"
+        android:label="patient_list_fragment_item_list"
+        tools:layout="@layout/patient_list_fragment_item_list" />
 </navigation>
