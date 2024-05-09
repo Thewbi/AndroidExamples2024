@@ -65,7 +65,7 @@ class MainActivity : AppCompatActivity() {
 
 The call to setContentView(R.layout.activity_main) attaches the XML file layout/activity_main.xml to the main activity.
 
-Inside the activity_main.xml, a FragmentCointainerView is placed.
+Inside the activity_main.xml, a FragmentContainerView is placed.
 
 ```
 <?xml version="1.0" encoding="utf-8"?>
@@ -89,8 +89,6 @@ Inside the activity_main.xml, a FragmentCointainerView is placed.
 
 </androidx.constraintlayout.widget.ConstraintLayout>
 ```
-
-
 
 The file activity_main.xml sometimes does not get generated when the project is created initially.
 A reason for the absense of the activity_main.xml file might be that your project draws the UI using Jetpack Compose, i.e. generates the UI elements programmatically.
@@ -139,4 +137,119 @@ app:startDestination="@id/loginFragment2"
 
 ## The login fragment
 
-Creating fragments is done by 
+Creating fragments is done via the IDE.
+
+Open the context menu and select New > Fragment > ...
+
+From the list of available fragments, the login fragment is created by selecting "Login Fragment".
+The Login Fragment uses the MVVM pattern and the IDE will generate the entire class structure that is required to run the Login functionality.
+
+The UI elements are created in res\layout\fragment_login.xml
+
+The user types in a username and a password into the input fields, then taps the login button.
+
+### Interaction between the View and the View Model
+
+Lets look at how the view is interfacing with the view model and how the login button works.
+
+Inside LoginFragment.kt, there is a binding, which gives the class access to the UI elements defined in the XML layout.
+
+```
+val loginButton = binding.login
+
+...
+
+loginButton.setOnClickListener {
+	loadingProgressBar.visibility = View.VISIBLE
+	loginViewModel.login(
+		usernameEditText.text.toString(),
+		passwordEditText.text.toString()
+	)
+}
+```
+
+This onClick listener will read the text from the username and password fields and pass those values into a call to
+loginViewModel.login().
+
+This is how the view talks to the view model in the MVVM pattern. The view does not care what happens with the data.
+
+The login() funtion in the loginViewModel is:
+
+```
+fun login(username: String, password: String) {
+	// can be launched in a separate asynchronous job
+	val result = loginRepository.login(username, password)
+
+	if (result is Result.Success) {
+		_loginResult.value =
+			LoginResult(success = LoggedInUserView(displayName = result.data.displayName))
+	} else {
+		_loginResult.value = LoginResult(error = R.string.login_failed)
+	}
+}
+```
+
+The view model talks to the repository in oder to find out if the login suceeded or failed.
+
+```
+val result = loginRepository.login(username, password)
+```
+
+The repsitory will answer with a result. The view model now modifies the MutableLiveData<LoginResult>() object.
+The view (= LoginFragment.kt) is registered as an observer to this mutable and will react to the changes made to the MutableLiveData<LoginResult>() object.
+See LoginFragment.kt
+
+```
+override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+
+	...
+	
+	loginViewModel.loginResult.observe(viewLifecycleOwner,
+		Observer { loginResult ->
+			loginResult ?: return@Observer
+			loadingProgressBar.visibility = View.GONE
+			loginResult.error?.let {
+				showLoginFailed(it)
+			}
+			loginResult.success?.let {
+				updateUiWithUser(it)
+			}
+		})
+		
+	...
+	
+}
+```
+
+This is how the UI reacts to changes inside the view model. The view does not know about the application logic that changes the data.
+It just displays the updated data.
+
+Instead of updateUiWithUser(it) the application should navigate to the next fragment.
+If the login fails, the application should stay on the login fragment.
+
+### Interaction between the ViewModel and the Model
+
+The model consists of the repository which in turn tolks to the DataSource.
+The repository LoginRepository.kt uses the data source (LoginDataSource.kt) to check if the login can be completed using the
+username and the password.
+
+```
+fun login(username: String, password: String): Result<LoggedInUser> {
+	// handle login
+	val result = dataSource.login(username, password)
+
+	if (result is Result.Success) {
+		setLoggedInUser(result.data)
+	}
+
+	return result
+}
+```
+
+The repository's result is retrieved by the viewmodel.
+The viewmodel will update it's MutableLiveData with said result which in turn triggers the observable that is part of the view and which
+is registered at the mutable. This is how the result information makes it's way back into the UI without the UI knowing details of how
+this data was retrieved.
+
+
+
