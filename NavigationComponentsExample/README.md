@@ -203,7 +203,9 @@ The view model talks to the repository in oder to find out if the login suceeded
 val result = loginRepository.login(username, password)
 ```
 
-The repsitory will answer with a result. The view model now modifies the MutableLiveData<LoginResult>() object.
+The repsitory will answer with a result. The view model now modifies it's own MutableLiveData<LoginResult>() object.
+It updates the MutableLiveData<LoginResult>() object with the information from the result.
+
 The view (= LoginFragment.kt) is registered as an observer to this mutable and will react to the changes made to the MutableLiveData<LoginResult>() object.
 See LoginFragment.kt
 
@@ -319,3 +321,114 @@ When the user uses the back button of the Android UI, the application goes back 
 for a split second then navigates back to the patient list immediately!
 
 TODO: What is going on?
+
+When the back button is used, the loginViewModel.loginResult() Mutable changes for some unknown reason.
+Which triggers the observer and the observer performs the navigation.
+
+https://stackoverflow.com/questions/61961794/how-to-clear-fragment-after-authentication-in-navigation-graph
+
+The solution is taken from the post above. The solution makes the login activity to be skipped during the 
+back navigation. Since the login activity is the lowest activity on the stack, the app will close. Since
+the app closes and the login is not persisted, the user is logged out when the application starts again.
+
+*app:popUpTo="@id/authenticationScreen"* specifies that we will to go back to this fragment
+*app:popUpToInclusive="true"* specifies that this fragment will be popped so the app will close, because there will be nowhere to go to when we click the back button.
+
+```
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/loginFragment2">
+    <fragment
+        android:id="@+id/loginFragment2"
+        android:name="com.example.navigationcomponentsexample.ui.login.LoginFragment"
+        android:label="fragment_login"
+        tools:layout="@layout/fragment_login" >
+        <action
+            android:id="@+id/action_loginFragment2_to_patientListFragment"
+            app:destination="@id/patientListFragment"
+            app:popUpTo="@id/loginFragment2"
+            app:popUpToInclusive="true" />
+    </fragment>
+    <fragment
+        android:id="@+id/patientListFragment"
+        android:name="com.example.navigationcomponentsexample.ui.patients.PatientListFragment"
+        android:label="patient_list_fragment_item_list"
+        tools:layout="@layout/patient_list_fragment_item_list" />
+</navigation>
+```
+
+### PatientListFragment
+
+The PatientListFragment.kt (patient_list_fragment_item_list.xml) contains a RecyclerView.
+
+```
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.recyclerview.widget.RecyclerView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/list"
+    android:name="com.example.navigationcomponentsexample.PatientListFragment"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_marginLeft="16dp"
+    android:layout_marginRight="16dp"
+    app:layoutManager="LinearLayoutManager"
+    tools:context=".ui.patients.PatientListFragment"
+    tools:listitem="@layout/patient_list_fragment_item" />
+```
+
+The RecyclerView needs a listitem fragment via the tools:listitem attribute.
+
+The list item is defined in patient_list_fragment_item.xml
+
+There is a PatientListRecyclerViewAdapter.kt adapter that has the job to create the list items 
+on demand based on how many data objects exist in the MVVM repository.
+
+The adapter is used in PatientListFragment.kt
+
+When the IDE generates the PatientListFragment, it does not generate the entire MVVM infrastructure.
+Instead, it creates a PlaceholderContent.kt object with dummy data.
+
+The generated code for the PatientListFragment.kt uses the dummy data in conjunction with the adapter:
+
+PatientListFragment.kt:
+
+```
+override fun onCreateView(
+	inflater: LayoutInflater, container: ViewGroup?,
+	savedInstanceState: Bundle?
+): View? {
+	val view = inflater.inflate(R.layout.patient_list_fragment_item_list, container, false)
+
+	// Set the adapter
+	if (view is RecyclerView) {
+		with(view) {
+			layoutManager = when {
+				columnCount <= 1 -> LinearLayoutManager(context)
+				else -> GridLayoutManager(context, columnCount)
+			}
+			adapter = PatientListRecyclerViewAdapter(PlaceholderContent.ITEMS)
+		}
+	}
+	return view
+}
+```
+
+PlaceholderContent is a mocked viewmodel to the UI.
+
+The task now is to replace the mocked viewmodel by a real MVVM infrastructure.
+
+PlaceholderContent.CONTENT is a MutableList<PlaceholderItem> onto which a UI element can subscribe an observer.
+
+In the Login MVVM infrastructure, the MutableList object is owned by the view model and updated by the view model when
+it retrieves data from the repository.
+
+Therefore, lets create a MVVM infrastructure and replace the PlaceholderContent.CONTENT by the MutableList of the 
+viewmodel.
+
+https://www.youtube.com/watch?v=A7CGcFjQQtQ
+
+
