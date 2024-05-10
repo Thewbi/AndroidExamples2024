@@ -3,7 +3,7 @@ plugins {
     alias(libs.plugins.jetbrains.kotlin.android)
     //id("kotlin-kapt")
     //id("com.google.dagger.hilt.android")
-    kotlin("kapt") version "1.9.23"
+    kotlin("kapt") version "1.9.23" apply true
     id("com.google.dagger.hilt.android") version "2.48" apply true
 }
 
@@ -62,9 +62,9 @@ dependencies {
     implementation(libs.androidx.ui)
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
-    implementation(libs.androidx.material3)
     implementation(libs.androidx.room.common)
     implementation(libs.androidx.room.ktx)
+    implementation(libs.androidx.material3.android)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -74,8 +74,22 @@ dependencies {
     debugImplementation(libs.androidx.ui.test.manifest)
 
     // Hilt
-    implementation ("com.google.dagger:hilt-android:2.48")
-    kapt ("com.google.dagger:hilt-compiler:2.48")
+    implementation("com.google.dagger:hilt-android:2.48")
+    kapt("com.google.dagger:hilt-compiler:2.48")
+    implementation("androidx.hilt:hilt-navigation-compose:1.1.0-alpha01")
+    implementation("androidx.navigation:navigation-compose:2.5.3")
+
+    annotationProcessor("android.arch.persistence.room:compiler:1.0.0")
+
+
+// Room
+    val room_version = "2.6.1"
+    implementation("androidx.room:room-runtime:$room_version")
+    kapt("androidx.room:room-compiler:$room_version")
+
+    // material
+    //implementation("androidx.compose.material:material:1.4.1")
+    //implementation("androidx.compose.material3:material3:1.0.1")
 }
 
 //kapt {
