@@ -1,5 +1,7 @@
 package com.example.todoapp.ui.todo_list
 
+import android.util.Log
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -27,7 +29,12 @@ fun TodoItem(
     modifier: Modifier = Modifier
 ) {
     Row(
-        modifier = modifier,
+        modifier = Modifier
+            .clickable {
+                Log.w("TodoItem", "row clicked")
+                onEvent(TodoListEvent.OnTodoClick(todo))
+            }
+            .then(modifier),
         verticalAlignment = Alignment.CenterVertically
     ) {
 
@@ -35,23 +42,34 @@ fun TodoItem(
             modifier = Modifier.weight(1f),
             verticalArrangement = Arrangement.Center
         ) {
+
             Row(
                 verticalAlignment = Alignment.CenterVertically
             ) {
+
+                // todo title text
                 Text(
                     text = todo.title,
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold
                 )
+
                 Spacer(modifier = Modifier.width(8.dp))
+
+                // delete button
                 IconButton(onClick = {
+
+                    // send an event to the TodoListViewModel
                     onEvent(TodoListEvent.OnDeleteTodoClick(todo))
+
                 }) {
                     Icon(
                         imageVector = Icons.Default.Delete,
                         contentDescription = "Delete"
                     )
                 }
+
+                // todo description text
                 todo.description?.let {
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
@@ -61,9 +79,13 @@ fun TodoItem(
             }
         }
 
+        // isDone checkbox
         Checkbox(checked = todo.isDone,
             onCheckedChange = { isChecked ->
+
+                // send an event to the TodoListViewModel
                 onEvent(TodoListEvent.OnDoneChange(todo, isChecked))
+
             }
         )
     }

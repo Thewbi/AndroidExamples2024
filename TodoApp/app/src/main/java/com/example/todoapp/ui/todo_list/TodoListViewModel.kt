@@ -13,7 +13,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 /**
- * The viewmodel part of the MVVM pattern.
+ * The viewmodel part of the MVVM pattern for the TodoListView.
  */
 @HiltViewModel
 class TodoListViewModel @Inject constructor(
@@ -28,6 +28,7 @@ class TodoListViewModel @Inject constructor(
     private var deletedTodo: Todo? = null
 
     fun onEvent(event: TodoListEvent) {
+        
         when (event) {
 
             // CREATE

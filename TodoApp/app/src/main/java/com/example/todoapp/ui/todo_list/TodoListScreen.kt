@@ -22,40 +22,55 @@ import com.example.todoapp.util.UiEvent
 @Composable
 fun TodoListScreen(
     onNavigate: (UiEvent.Navigate) -> Unit,
-    viewModel: TodoListViewModel = hiltViewModel()
+    todoListViewModel: TodoListViewModel = hiltViewModel()
 ) {
-    val todos = viewModel.todos.collectAsState(initial = emptyList())
+
+    val todos = todoListViewModel.todos.collectAsState(initial = emptyList())
     val snackbarHostState = remember { SnackbarHostState() }
+
     //val scope = rememberCoroutineScope()
     LaunchedEffect(key1 = true) {
-        viewModel.uiEventFlow.collect { event ->
+
+        // subscribe to the uiEventFlow of the view model.
+        // This flow will emit events for navigating into todos
+        // and events for undeleting todos
+        todoListViewModel.uiEventFlow.collect { event ->
+
             when (event) {
 
+                // undo delete
                 is UiEvent.ShowSnackbar -> {
                     val result = snackbarHostState.showSnackbar(
                         message = event.message,
                         actionLabel = event.action
                     )
                     if (result == SnackbarResult.ActionPerformed) {
-                        viewModel.onEvent(TodoListEvent.OnUndoDeleteClick)
+                        todoListViewModel.onEvent(TodoListEvent.OnUndoDeleteClick)
                     }
                 }
 
+                // navigate to the AddEditTodoScreen
+                //
+                // The navigation event is send by ???
                 is UiEvent.Navigate -> {
                     onNavigate(event)
                 }
 
                 else -> Unit
+
             }
         }
     }
 
     // https://developer.android.com/develop/ui/compose/designsystems/material2-material3?hl=de#m3_6
     Scaffold(
+
         snackbarHost = { SnackbarHost(snackbarHostState) },
+
+        // button to add a new todo
         floatingActionButton = {
             FloatingActionButton(onClick = {
-                viewModel.onEvent(TodoListEvent.OnAddTodoClick)
+                todoListViewModel.onEvent(TodoListEvent.OnAddTodoClick)
             }) {
                 Icon(
                     imageVector = Icons.Default.Add,
@@ -63,18 +78,30 @@ fun TodoListScreen(
                 )
             }
         },
+
+        // insert a list view of all items
         content = { padding ->
             LazyColumn(
                 modifier = Modifier
                     .padding(padding)
                 //modifier = Modifier.fillMaxSize()
             ) {
+
                 items(todos.value) { todo ->
+
                     TodoItem(
+
+
                         todo = todo,
-                        onEvent = viewModel::onEvent
+
+                        // here, the onEvent() function of the todoListViewModel is passed
+                        // into the TodoItem, so that the TodoItem can call the method and
+                        // send events to the todoListViewModel.
+                        onEvent = todoListViewModel::onEvent
                     )
+
                 }
+
             }
         }
     )

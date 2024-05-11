@@ -13,4 +13,5 @@ sealed class TodoListEvent {
     data class OnDeleteTodoClick(val todo: Todo) : TodoListEvent()
 
     object OnUndoDeleteClick : TodoListEvent()
+    
 }
